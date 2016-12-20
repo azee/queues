@@ -1,7 +1,9 @@
 package com.example.beans;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by azee on 09.12.16.
@@ -9,10 +11,12 @@ import java.util.UUID;
 public class Message<T> implements Serializable {
 
     private T body;
-    private final String uuid = UUID.randomUUID().toString();
+    private String uuid;
+    private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     public Message(T body) {
         this.body = body;
+        uuid = UUID.randomUUID().toString();
     }
 
     public T getBody() {
@@ -25,5 +29,18 @@ public class Message<T> implements Serializable {
 
     public String getUuid() {
         return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public Message<T> withUuid(String uuid){
+        setUuid(uuid);
+        return this;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 }

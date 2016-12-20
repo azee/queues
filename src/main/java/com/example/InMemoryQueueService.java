@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class InMemoryQueueService extends BaseQueueService{
 
     //Using Deque to be able to place messages at the beginning of the queue
-    //Using ConcurrentLinkedDeque to avoid concurrent modification exceptions and locking
     private final Map<String, Deque<Message>> queues = new ConcurrentHashMap<>();
 
     //Pending map is used as a container for "invisible" (prefetched) messages
@@ -24,7 +23,9 @@ public class InMemoryQueueService extends BaseQueueService{
     }
 
     /**
-     * Just add a message to a concurrent queue
+     * Add a message to a concurrent queue
+     * There is a possibility to add a message to a deleted queue if
+     * queue was removed in the middle of operation by another thread
      */
     @Override
     public void push(String queueName, Message message) {
@@ -33,7 +34,8 @@ public class InMemoryQueueService extends BaseQueueService{
 
 
     /**
-     * Pull a message will remove it from the queue and place into a "pending confirmation prefetched" container
+     * Pull a message. Message will be removed from the queue
+     * and placed into a "pending confirmation pre-fetched" container
      */
     @Override
     public Message pull(String queueName) {
@@ -59,7 +61,6 @@ public class InMemoryQueueService extends BaseQueueService{
 
     /**
      * Get number of messages in queue
-     * Will be useful during exploitation and for TDD
      */
     @Override
     public long messagesInQueue(String queueName) {
@@ -68,7 +69,6 @@ public class InMemoryQueueService extends BaseQueueService{
 
     /**
      * Get number of pending confirmation messages
-     * Will be useful during exploitation and for TDD
      */
     @Override
     public long pendingMessages(String queueName) {
@@ -76,17 +76,18 @@ public class InMemoryQueueService extends BaseQueueService{
     }
 
     /**
-     * Drop a queue
+     * Drop all messages from the queue
+     * Skipping synchronisation. Supposed to be used at startup, shutdown or TDD.
      */
     @Override
     public void clearMessages(String queueName) {
-        queues.clear();
-        pendings.clear();
+        getQueue(queueName).clear();
+        pendings.values().removeIf(message -> message.getQueuName().equals(queueName));
     }
 
     /**
-     * Goes through pending container to define if ttl of eny is exceeded
-     * If so moves messages to the head of the queue
+     * Goes through pending container. Mark unvisited messages as visited.
+     * Move previously visited to a queue again (GC-like timeout implementation)
      */
     protected void clearPending() {
         pendings.entrySet().removeIf(entry -> {
@@ -102,9 +103,9 @@ public class InMemoryQueueService extends BaseQueueService{
 
     /**
      * Get a queue by name
-     * Will act synchronized if a new queue is created
      */
     private Deque<Message> getQueue(String queueName){
+        //Using ConcurrentLinkedDeque to avoid concurrent modification exceptions and locking
         queues.putIfAbsent(queueName, new ConcurrentLinkedDeque());
         return queues.get(queueName);
     }

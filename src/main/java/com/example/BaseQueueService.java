@@ -10,6 +10,11 @@ public abstract class BaseQueueService implements QueueService {
 
     private final long timeout;
 
+    /**
+     * Creates a scheduled cleanup thread that will move delayed pending
+     * messages to a queue again
+     * @param timeout
+     */
     public BaseQueueService(long timeout) {
         this.timeout = timeout;
         Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {

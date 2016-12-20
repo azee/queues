@@ -18,7 +18,7 @@ public class FileQueueService extends BaseQueueService{
 
     /**
      * Constructor
-     * Reads property if base queues url is redefined (e.g. parametrized by Jenkins) and keep default if not set.
+     * Creates a base directory if needed
      */
     public FileQueueService(long timeout, String baseDir) {
         super(timeout);
@@ -33,9 +33,10 @@ public class FileQueueService extends BaseQueueService{
     @Override
     public void push(String queueName, Message message) {
         //We keep reception time of the message to use it as index for FIFO
+        //will be a part of a filename
         long now = System.nanoTime();
 
-        //Create a directory for the queue a new queue name received
+        //Create a directory for the queue if a new queue name received
         File queueDir = getQueueBaseDir(queueName);
         if (!queueDir.exists()){
             queueDir.mkdir();
@@ -62,7 +63,7 @@ public class FileQueueService extends BaseQueueService{
             lock(lock);
 
             //Pull will move file to a pending messages directory
-            //Create a directory if not exists
+            //Create a directory if does not exist
             File pendings = getQueuePendingDir(queueName);
             if (!pendings.exists()){
                 pendings.mkdir();
@@ -143,6 +144,10 @@ public class FileQueueService extends BaseQueueService{
         }
     }
 
+    /**
+     * Locking a queue by creating a directory
+     * @param lock
+     */
     private void lock(File lock){
         while (!lock.mkdir()) {
             try {
@@ -153,6 +158,10 @@ public class FileQueueService extends BaseQueueService{
         }
     }
 
+    /**
+     * Removes the locking file
+     * @param lock
+     */
     private void unlock(File lock) {
         lock.delete();
     }

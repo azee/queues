@@ -57,11 +57,16 @@ public class PushPopTest extends CommonBaseTest{
     @Test
     public void concurrentPullDeleteTest() throws InterruptedException {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-        for (int i = 0; i < 1; i++) {
-            service.push(QUEUE_NAME, new Message("msg" + i));
+        for (int i = 0; i < 1000; i++) {
             Runnable worker = new Runnable() {
                 @Override
                 public void run() {
+                    service.push(QUEUE_NAME, new Message("msg"));
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     service.delete(QUEUE_NAME, service.pull(QUEUE_NAME));
                 }
             };
