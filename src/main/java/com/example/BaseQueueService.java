@@ -12,7 +12,8 @@ public abstract class BaseQueueService implements QueueService {
 
     /**
      * Creates a scheduled cleanup thread that will move delayed pending
-     * messages to a queue again
+     * messages to a queue again.
+     * If timeout is set to 0 then messages will wait for confirmation forever
      * @param timeout
      */
     public BaseQueueService(long timeout) {

@@ -20,12 +20,8 @@ public class CommonBaseTest {
     @Parameterized.Parameters(name = "{index}: queue {1}")
     public static Collection getServices() {
         return Arrays.asList(new Object[][]{
-                {new InMemoryQueueService(10)},
-                {new InMemoryQueueService(300)},
-                {new InMemoryQueueService(1000)},
-                {new InMemoryQueueService(3000)},
-                {new FileQueueService(300, "/tmp/queues")},
-                {new FileQueueService(1000, "/tmp/queues")}
+                {new InMemoryQueueService(300000)},
+                {new FileQueueService(30000, "/tmp/queues")}
         });
     }
 
